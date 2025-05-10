@@ -10,9 +10,11 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private Long accountNumber;
+    
     private String identityNumber;
     private String name;
+    private String password;
     private String email;
     private String phoneNumber;
     private BigDecimal balance;
@@ -24,9 +26,10 @@ public class Account {
         // Default constructor
     }
 
-    public Account(String identityNumber, String name, String email, String phoneNumber, BigDecimal balance, BigDecimal loanDebt ) {
+    public Account(String identityNumber, String name,String password, String email, String phoneNumber, BigDecimal balance, BigDecimal loanDebt ) {
         this.identityNumber = identityNumber;
         this.name = name;
+        this.password = password;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.balance = balance;
@@ -34,11 +37,11 @@ public class Account {
     }
 
     public Long getAccountId() {
-        return accountId;
+        return accountNumber;
     }
 
     public void setAccountId(Long accountId) {
-        this.accountId = accountId;
+        this.accountNumber = accountId;
     }
 
     public String getIdentityNumber() {
@@ -55,6 +58,14 @@ public class Account {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getEmail() {
