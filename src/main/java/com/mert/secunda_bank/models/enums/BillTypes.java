@@ -5,7 +5,7 @@ public enum BillTypes {
     WATER,
     INTERNET,
     NATURAL_GAS,
-    CREDIT_CARD,
+    LOAN_DEBT,
     PHONE;
 
     @Override
@@ -15,7 +15,7 @@ public enum BillTypes {
             case WATER: return "Water";
             case INTERNET: return "Internet";
             case NATURAL_GAS: return "Natural Gas";
-            case CREDIT_CARD: return "Credit Card";
+            case LOAN_DEBT: return "Loan Debt";
             case PHONE: return "Phone";
             default: return super.toString();
         }

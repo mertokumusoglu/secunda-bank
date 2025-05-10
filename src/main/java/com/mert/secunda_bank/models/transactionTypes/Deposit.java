@@ -11,10 +11,14 @@ public class Deposit extends Transaction {
 
     private String receiverAccountNumber;
 
+    public Deposit() {
+        // default
+    }
+
     public Deposit(BigDecimal amount, CurrencyTypes currencyTypes, String receiverAccountNumber) {
         super(amount,
               LocalDateTime.now(),
-                currencyTypes,
+              currencyTypes,
               TransactionType.DEPOSIT,
               "PENDING",
               "Deposit transaction",
@@ -24,7 +28,7 @@ public class Deposit extends Transaction {
 
     @Override
     public void execute() {
-        // deposit code
+        // after deposit code in service layer
         this.setStatus("COMPLETED");
         System.out.println("Withdrawal process completed for account: " + this.getReceiverAccountNumber() + " amount: " + getAmount());
     }

@@ -11,10 +11,14 @@ public class Transfer extends Transaction {
     private String receiverAccountNumber;
     private String senderAccountNumber;
 
+    public Transfer() {
+
+    }
+
     public Transfer(BigDecimal amount, CurrencyTypes currencyTypes, String receiverAccountNumber, String senderAccountNumber) {
         super(amount,
               LocalDateTime.now(),
-                currencyTypes,
+              currencyTypes,
               TransactionType.TRANSFER,
               "PENDING",
               "Deposit transaction",
@@ -25,7 +29,7 @@ public class Transfer extends Transaction {
 
     @Override
     public void execute() {
-        // transfer code
+        // after transfer code in service layer
         this.setStatus("COMPLETED");
         System.out.println("Transfer completed to" + getReceiverAccountNumber() + " by " + getSenderAccountNumber());
     }

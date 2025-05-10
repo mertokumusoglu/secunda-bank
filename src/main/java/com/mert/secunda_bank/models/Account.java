@@ -2,6 +2,7 @@ package com.mert.secunda_bank.models;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,8 +20,12 @@ public class Account {
     private String phoneNumber;
     private BigDecimal balance;
     private BigDecimal loanDebt;
-    private List<Bill> bills;
-    private List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "account")
+    private List<Bill> bills = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account")
+    private List<Transaction> transactions = new ArrayList<>();
 
     public Account() {
         // Default constructor
@@ -104,5 +109,8 @@ public class Account {
         return bills;
     }
 
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
 }
 

@@ -11,10 +11,14 @@ public class Withdrawal extends Transaction {
 
     private String senderAccountNumber;
 
+    public Withdrawal() {
+
+    }
+
     public Withdrawal(BigDecimal amount, CurrencyTypes currencyTypes, String senderAccountNumber) {
         super(amount,
               LocalDateTime.now(),
-                currencyTypes,
+              currencyTypes,
               TransactionType.WITHDRAWAL,
               "PENDING",
               "Withdrawal transaction",
@@ -28,7 +32,7 @@ public class Withdrawal extends Transaction {
 
     @Override
     public void execute() {
-        // withdrawal code
+        // after withdrawal code in service layer
         this.setStatus("COMPLETED");
         System.out.println("Withdrawal process completed for account: " + this.getSenderAccountNumber() + " amount: " + this.getAmount());
     }
