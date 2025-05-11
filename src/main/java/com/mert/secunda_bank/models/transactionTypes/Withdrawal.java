@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 
 public class Withdrawal extends Transaction {
 
-    private String senderAccountNumber;
+    private Long senderAccountNumber;
 
     public Withdrawal() {
 
     }
 
-    public Withdrawal(BigDecimal amount, CurrencyTypes currencyTypes, String senderAccountNumber) {
+    public Withdrawal(BigDecimal amount, CurrencyTypes currencyTypes, Long senderAccountNumber) {
         super(amount,
               LocalDateTime.now(),
               currencyTypes,
@@ -26,7 +26,7 @@ public class Withdrawal extends Transaction {
         this.senderAccountNumber = senderAccountNumber;
     }
 
-    public String getSenderAccountNumber() {
+    public Long getSenderAccountNumber() {
         return senderAccountNumber;
     }
 

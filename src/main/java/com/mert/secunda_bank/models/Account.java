@@ -13,7 +13,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountNumber;
     
-    private String identityNumber;
+    private Long identityNumber;
     private String name;
     private String password;
     private String email;
@@ -31,7 +31,7 @@ public class Account {
         // Default constructor
     }
 
-    public Account(String identityNumber, String name,String password, String email, String phoneNumber, BigDecimal balance, BigDecimal loanDebt ) {
+    public Account(Long identityNumber, String name,String password, String email, String phoneNumber, BigDecimal balance, BigDecimal loanDebt ) {
         this.identityNumber = identityNumber;
         this.name = name;
         this.password = password;
@@ -49,11 +49,11 @@ public class Account {
         this.accountNumber = accountId;
     }
 
-    public String getIdentityNumber() {
+    public Long getIdentityNumber() {
         return identityNumber;
     }
 
-    public void setIdentityNumber(String identityNumber) {
+    public void setIdentityNumber(Long identityNumber) {
         this.identityNumber = identityNumber;
     }
 
