@@ -2,24 +2,24 @@ package com.mert.secunda_bank.models.transactionTypes;
 
 import com.mert.secunda_bank.models.Transaction;
 import com.mert.secunda_bank.models.enums.CurrencyTypes;
-import com.mert.secunda_bank.models.enums.TransactionType;
+import com.mert.secunda_bank.models.enums.TransactionTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Transfer extends Transaction {
-    private String receiverAccountNumber;
-    private String senderAccountNumber;
+    private Long receiverAccountNumber;
+    private Long senderAccountNumber;
 
     public Transfer() {
 
     }
 
-    public Transfer(BigDecimal amount, CurrencyTypes currencyTypes, String receiverAccountNumber, String senderAccountNumber) {
+    public Transfer(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber, Long senderAccountNumber) {
         super(amount,
               LocalDateTime.now(),
               currencyTypes,
-              TransactionType.TRANSFER,
+              TransactionTypes.TRANSFER,
               "PENDING",
               "Deposit transaction",
               BigDecimal.ZERO);
@@ -33,11 +33,11 @@ public class Transfer extends Transaction {
         this.setStatus("COMPLETED");
         System.out.println("Transfer completed to" + getReceiverAccountNumber() + " by " + getSenderAccountNumber());
     }
-    public String getReceiverAccountNumber() {
+    public Long getReceiverAccountNumber() {
         return receiverAccountNumber;
     }
 
-    public String getSenderAccountNumber() {
+    public Long getSenderAccountNumber() {
         return senderAccountNumber;
     }
 }

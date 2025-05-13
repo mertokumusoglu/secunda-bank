@@ -1,6 +1,6 @@
 package com.mert.secunda_bank.models.enums;
 
-public enum TransactionType {
+public enum TransactionTypes {
     WITHDRAWAL,
     DEPOSIT,
     TRANSFER,

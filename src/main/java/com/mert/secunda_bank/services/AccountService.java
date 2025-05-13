@@ -14,8 +14,10 @@ public class AccountService {
     public Account createAccount(Account account) {
         return accountRepository.save(account);
     }
-    public Account getAccountById(Long accountNumber) {
-        return accountRepository.findById(accountNumber).orElse(null);
+    public Account getAccountByAccountNumber(Long accountNumber) {
+        return accountRepository.findById(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
     }
     public Account getAccountByIdentityNumber(Long identityNumber) {
         return accountRepository.findByIdentityNumber(identityNumber)

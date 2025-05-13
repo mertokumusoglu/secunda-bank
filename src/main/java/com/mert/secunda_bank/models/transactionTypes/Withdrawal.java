@@ -2,7 +2,7 @@ package com.mert.secunda_bank.models.transactionTypes;
 
 import com.mert.secunda_bank.models.Transaction;
 import com.mert.secunda_bank.models.enums.CurrencyTypes;
-import com.mert.secunda_bank.models.enums.TransactionType;
+import com.mert.secunda_bank.models.enums.TransactionTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ public class Withdrawal extends Transaction {
         super(amount,
               LocalDateTime.now(),
               currencyTypes,
-              TransactionType.WITHDRAWAL,
+              TransactionTypes.WITHDRAWAL,
               "PENDING",
               "Withdrawal transaction",
               BigDecimal.ZERO);

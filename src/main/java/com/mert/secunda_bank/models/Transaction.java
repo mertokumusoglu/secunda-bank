@@ -1,13 +1,14 @@
 package com.mert.secunda_bank.models;
 
 import com.mert.secunda_bank.models.enums.CurrencyTypes;
-import com.mert.secunda_bank.models.enums.TransactionType;
+import com.mert.secunda_bank.models.enums.TransactionTypes;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
 @Entity
+@Table(name = "transactions")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "transaction_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class Transaction {
@@ -19,7 +20,7 @@ public abstract class Transaction {
     private BigDecimal amount;
     @Enumerated(EnumType.STRING)
     private CurrencyTypes currencyTypes;
-    private TransactionType type;
+    private TransactionTypes type;
     private LocalDateTime timestamp;
     private String status = "PENDING";
     private String description;
@@ -30,7 +31,7 @@ public abstract class Transaction {
         // default
     }
 
-    public Transaction(BigDecimal amount, LocalDateTime timestamp, CurrencyTypes currencyTypes, TransactionType type, String status, String description, BigDecimal fee) {
+    public Transaction(BigDecimal amount, LocalDateTime timestamp, CurrencyTypes currencyTypes, TransactionTypes type, String status, String description, BigDecimal fee) {
 
         this.amount = amount;
         this.timestamp = timestamp.now();
@@ -65,11 +66,11 @@ public abstract class Transaction {
         this.currencyTypes = currencyTypes;
     }
 
-    public TransactionType getType() {
+    public TransactionTypes getType() {
         return type;
     }
 
-    public void setType(TransactionType type) {
+    public void setType(TransactionTypes type) {
         this.type = type;
     }
 

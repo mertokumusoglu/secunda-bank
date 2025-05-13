@@ -7,11 +7,17 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "bills")
 public class Bill {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long billId;
+
+    @ManyToOne
+    @JoinColumn(name = "accountNumber", nullable = false)
+    private Account account;
 
     @Enumerated(EnumType.STRING)
     private BillTypes billType;
@@ -24,8 +30,9 @@ public class Bill {
         // default
     }
 
-    public Bill(Long billId, BillTypes billType, BigDecimal amount, LocalDateTime dueDate, CurrencyTypes currency, String status) {
+    public Bill(Long billId, Account account,BillTypes billType, BigDecimal amount, LocalDateTime dueDate, CurrencyTypes currency, String status) {
         this.billId = billId;
+        this.account = account;
         this.billType = billType;
         this.amount = amount;
         this.dueDate = dueDate;
@@ -39,6 +46,14 @@ public class Bill {
 
     public void setBillId(Long billId) {
         this.billId = billId;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     public BigDecimal getAmount() {

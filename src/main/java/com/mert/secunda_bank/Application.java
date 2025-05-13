@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class Application {
-
+	// bank's itself is not implemented
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}

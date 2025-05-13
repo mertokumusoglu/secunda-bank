@@ -14,10 +14,10 @@ public class TransactionFactory {
     public static Withdrawal createWithdrawalTransaction(Long senderAccountNumber, BigDecimal amount, CurrencyTypes currencyTypes) {
         return new Withdrawal(amount, currencyTypes, senderAccountNumber);
     }
-    public static Deposit createDepositTransaction(BigDecimal amount, CurrencyTypes currencyTypes, String receiverAccountNumber) {
+    public static Deposit createDepositTransaction(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber) {
         return new Deposit(amount, currencyTypes, receiverAccountNumber);
     }
-    public static Transfer createTransferTransaction(BigDecimal amount, CurrencyTypes currencyTypes, String receiverAccountNumber, String senderAccountNumber) {
+    public static Transfer createTransferTransaction(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber, Long senderAccountNumber) {
         return new Transfer(amount, currencyTypes, receiverAccountNumber, senderAccountNumber);
     }
     public static Payment createPaymentTransaction(BigDecimal amount, CurrencyTypes currencyTypes, BillTypes billTypes) {

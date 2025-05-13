@@ -18,7 +18,7 @@ public class Account {
     private String password;
     private String email;
     private String phoneNumber;
-    private BigDecimal balance;
+    private BigDecimal balance = BigDecimal.valueOf(50.0);
     private BigDecimal loanDebt;
 
     @OneToMany(mappedBy = "account")
