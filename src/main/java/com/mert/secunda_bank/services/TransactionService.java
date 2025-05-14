@@ -25,6 +25,19 @@ public class TransactionService {
     private AccountRepository accountRepository;
     @Autowired
     private AccountService accountService;
+    /*
+    private final TransactionRepository transactionRepository;
+    TransactionService(final TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
+    }
+    private final AccountRepository accountRepository;
+    TransactionService(final AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
+    private final AccountService accountService;
+    TransactionService(final AccountService accountService) {
+        this.accountService = accountService;
+    } */
 
 
     public void withdrawal(Long senderAccountNumber, BigDecimal amount, CurrencyTypes currencyType) {
@@ -108,9 +121,10 @@ public class TransactionService {
     private boolean hasValidateSufficientFunds(Account account, BigDecimal amount) {
         return account.getBalance().compareTo(amount) >= 0;
     }
+    /*
     private boolean isExistReceiverAccount(Long receiverAccountNumber) {
         return accountService.getAccountByAccountNumber(receiverAccountNumber) != null;
-    }
+    } */
     private void debitAccount(Account account, BigDecimal amount) {
         account.setBalance(account.getBalance().subtract(amount));
         accountRepository.save(account);
