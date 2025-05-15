@@ -119,7 +119,6 @@ public class TransactionService {
     }
 
     // side methods
-
     private boolean hasValidateSufficientFunds(Account account, BigDecimal amount) {
         return account.getBalance().compareTo(amount) >= 0;
     }
