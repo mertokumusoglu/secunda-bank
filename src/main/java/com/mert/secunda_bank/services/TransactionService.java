@@ -10,79 +10,81 @@ import com.mert.secunda_bank.models.transactionTypes.Transfer;
 import com.mert.secunda_bank.models.transactionTypes.Withdrawal;
 import com.mert.secunda_bank.repositories.AccountRepository;
 import com.mert.secunda_bank.repositories.TransactionRepository;
+
+import jakarta.transaction.InvalidTransactionException;
 import jakarta.transaction.TransactionalException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.*;
 
 import java.math.BigDecimal;
 
 @Service
 public class TransactionService {
 
-    @Autowired
-    private TransactionRepository transactionRepository;
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private AccountService accountService;
-    /*
     private final TransactionRepository transactionRepository;
-    TransactionService(final TransactionRepository transactionRepository) {
-        this.transactionRepository = transactionRepository;
-    }
     private final AccountRepository accountRepository;
-    TransactionService(final AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
-    }
     private final AccountService accountService;
-    TransactionService(final AccountService accountService) {
+
+    @Autowired
+    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository,
+            AccountService accountService) {
+        this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
         this.accountService = accountService;
-    } */
+    }
 
-
+    @Transactional(timeout = 10)
     public void withdrawal(Long senderAccountNumber, BigDecimal amount, CurrencyTypes currencyType) {
         Account account = accountService.getAccountByAccountNumber(senderAccountNumber);
-        if(hasValidateSufficientFunds(account, amount)) {
-            Withdrawal withdrawal = TransactionFactory.createWithdrawalTransaction(senderAccountNumber, amount, currencyType);
-            transactionRepository.save(withdrawal);
+        if (hasValidateSufficientFunds(account, amount)) {
             try {
+                Withdrawal withdrawal = TransactionFactory.createWithdrawalTransaction(senderAccountNumber, amount,
+                        currencyType);
                 // money goes from bank to user's hand - bank's itself will be added
-                debitAccount(account, amount);
+                BigDecimal newBalance = account.getBalance().subtract(amount);
+                account.setBalance(newBalance);
+                accountRepository.save(account); // ask
                 transactionRepository.save(withdrawal);
                 withdrawal.execute();
             } catch (Exception e) {
-                withdrawal.setStatus("FAILED");
                 throw new TransactionalException("Transaction failed", e);
             }
         }
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void transfer(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber, Long senderAccountNumber) {
-        Account senderAccount = accountService.getAccountByAccountNumber(senderAccountNumber);
-        Account receiverAccount = accountService.getAccountByAccountNumber(receiverAccountNumber);
-        if(hasValidateSufficientFunds(senderAccount, amount)) {
-            Transfer transfer = TransactionFactory.createTransferTransaction(amount, currencyTypes, receiverAccountNumber, senderAccountNumber);
-            transactionRepository.save(transfer);
-            try {
-                debitAccount(senderAccount, amount);
-                // money goes to bank balance then receiver
-                creditAccount(receiverAccount, amount);
-                transactionRepository.save(transfer);
-                transfer.execute();
-            } catch (Exception e) {
-                transfer.setStatus("FAILED");
-                throw new TransactionalException("Transaction failed", e);
+
+        Long firstLock = Math.min(senderAccountNumber, receiverAccountNumber);
+        Long secondLock = Math.max(senderAccountNumber, receiverAccountNumber);
+
+        Account firstAccount = accountService.getAccountByAccountNumber(firstLock);
+        Account secondAccount = accountService.getAccountByAccountNumber(secondLock);
+
+        Account senderAccount = (firstLock == senderAccountNumber) ? firstAccount : secondAccount;
+        Account receiverAccount = (firstLock == senderAccountNumber) ? secondAccount : firstAccount;
+
+        try {
+            validateTransfer(senderAccount, receiverAccount, amount);
+            if (hasValidateSufficientFunds(senderAccount, amount)) {
+                performTransfer(senderAccount, receiverAccount, amount);
+            } else {
+                throw new InvalidTransactionException("Insufficient funds");
             }
+        } catch (InvalidTransactionException e) {
+            throw new TransactionalException("Transaction failed", e);
         }
     }
 
     public void deposit(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber) {
         Account receiverAccount = accountService.getAccountByAccountNumber(receiverAccountNumber);
-        if(hasValidateSufficientFunds(receiverAccount, amount)) {
+        if (hasValidateSufficientFunds(receiverAccount, amount)) {
             Deposit deposit = TransactionFactory.createDepositTransaction(amount, currencyTypes, receiverAccountNumber);
             transactionRepository.save(deposit);
             try {
-                //first - money goes to pool from the bank then to user
+                // first - money goes to pool from the bank then to user
                 creditAccount(receiverAccount, amount);
                 transactionRepository.save(deposit);
                 deposit.execute();
@@ -121,16 +123,39 @@ public class TransactionService {
     private boolean hasValidateSufficientFunds(Account account, BigDecimal amount) {
         return account.getBalance().compareTo(amount) >= 0;
     }
-    /*
-    private boolean isExistReceiverAccount(Long receiverAccountNumber) {
-        return accountService.getAccountByAccountNumber(receiverAccountNumber) != null;
-    } */
+
     private void debitAccount(Account account, BigDecimal amount) {
         account.setBalance(account.getBalance().subtract(amount));
         accountRepository.save(account);
     }
+
     private void creditAccount(Account account, BigDecimal amount) {
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
+    }
+
+    private void performTransfer(Account senderAccount, Account receiverAccount, BigDecimal amount) {
+        BigDecimal originalSenderBalance = senderAccount.getBalance();
+        BigDecimal originalReceiverBalance = receiverAccount.getBalance();
+
+        try {
+            debitAccount(senderAccount, amount);
+            creditAccount(receiverAccount, amount);
+        } catch (Exception e) {
+            senderAccount.setBalance(originalSenderBalance);
+            receiverAccount.setBalance(originalReceiverBalance);
+            accountRepository.save(senderAccount);
+            accountRepository.save(receiverAccount);
+            throw new TransactionalException("Transaction failed", e);
+        }
+    }
+
+    private void validateTransfer(Account senderAccount, Account receiverAccount, BigDecimal amount) throws InvalidTransactionException {
+        if (senderAccount.equals(receiverAccount)) {
+            throw new InvalidTransactionException("Cannot transfer to same account");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidTransactionException("Amount must be positive");
+        }
     }
 }

@@ -18,28 +18,52 @@ public class AccountController {
     }
     @GetMapping("")
     public List<Account> getAccounts() {
-        return accountService.getAllAccounts();
+        try {
+            return accountService.getAllAccounts();        
+        } catch (Exception e) {
+            throw new RuntimeException("Accounts could not be fetched", e);
+        }
     }
     // single account controllers
     @GetMapping("/{id}")
     public Account getAccountByAccountNumber(@PathVariable Long id) {
-        return accountService.getAccountByAccountNumber(id);
+        try {
+            return accountService.getAccountByAccountNumber(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Account with Account Number " + id + " could not be fetched", e);
+        }
     }
     @GetMapping("/{id}/transactions")
     public List<Transaction> getTransactionsByAccountNumber(@PathVariable Long id) {
-        return accountService.getTransactions(id);
+        try {
+            return accountService.getTransactions(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Transactions could not be fetched", e);
+        }
     }
     @GetMapping("/{id}/bills")
     public List<Bill> getBillsByAccountNumber(@PathVariable Long id) {
-        return accountService.getBills(id);
+        try {
+            return accountService.getBills(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Bills could not be fetched", e);
+        }
     }
     @PutMapping("/{id}")
     public Account updateAccount(@PathVariable Long id, @RequestBody Account updatedAccount) {
-        return accountService.updateAccount(id, updatedAccount);
+        try {
+            return accountService.updateAccount(id, updatedAccount);
+        } catch (Exception e) {
+            throw new RuntimeException("Account could not be updated", e);
+        }
     }
     @PutMapping("/{id}/reset-password") // identity number and oldPassword will comes from session
     public Account resetPassword(@PathVariable Long identityNumber, String oldPassword,@RequestBody Account account) {
-        accountService.resetPassword(identityNumber, oldPassword, account.getPassword());
+        try {
+            accountService.resetPassword(identityNumber, oldPassword, account.getPassword());
+        } catch (Exception e) {
+            throw new RuntimeException("Password could not be reset", e);
+        }
         return account;
     }
     @DeleteMapping("/{id}")
