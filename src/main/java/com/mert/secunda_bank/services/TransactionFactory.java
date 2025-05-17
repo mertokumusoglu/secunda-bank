@@ -15,36 +15,56 @@ import org.hibernate.TransactionException;
 
 public class TransactionFactory {
 
-    public static Withdrawal createWithdrawalTransaction(Long senderAccountNumber, BigDecimal amount, CurrencyTypes currencyType) {
+    public static Withdrawal createWithdrawalTransaction(Long accountNumber, BigDecimal amount, CurrencyTypes currencyType) {
         try {
             validateTransactionParameters(amount, currencyType);
-            return new Withdrawal(amount, currencyType, senderAccountNumber);
+            return Withdrawal.builder()
+                    .accountNumber(accountNumber)
+                    .amount(amount)
+                    .currencyType(currencyType)
+                    .build();
         } catch (Exception e) {
-            throw new TransactionException("Transaction failed" + e);
+            throw new TransactionException("Transaction failed: " + e.getMessage());
         }
     }
-    public static Deposit createDepositTransaction(BigDecimal amount, CurrencyTypes currencyType, Long receiverAccountNumber) {
+
+    public static Deposit createDepositTransaction(BigDecimal amount, CurrencyTypes currencyType, Long accountNumber) {
         try {
             validateTransactionParameters(amount, currencyType);
-            return new Deposit(amount, currencyType, receiverAccountNumber);
+            return Deposit.builder()
+                    .accountNumber(accountNumber)
+                    .amount(amount)
+                    .currencyType(currencyType)
+                    .build();
         } catch (Exception e) {
-            throw new TransactionException("Transaction failed" + e);
+            throw new TransactionException("Transaction failed: " + e.getMessage());
         }
     }
+
     public static Transfer createTransferTransaction(BigDecimal amount, CurrencyTypes currencyType, Long receiverAccountNumber, Long senderAccountNumber) {
         try {
             validateTransactionParameters(amount, currencyType);
-            return new Transfer(amount, currencyType, receiverAccountNumber, senderAccountNumber);
+            return Transfer.builder()
+                    .amount(amount)
+                    .currencyType(currencyType)
+                    .sender(senderAccountNumber)
+                    .receiver(receiverAccountNumber)
+                    .build();
         } catch (Exception e) {
-            throw new TransactionException("Transaction failed" + e);
+            throw new TransactionException("Transaction failed: " + e.getMessage());
         }
     }
-    public static Payment createPaymentTransaction(BigDecimal amount, CurrencyTypes currencyType, BillTypes billTypes) {
+
+    public static Payment createPaymentTransaction(BigDecimal amount, CurrencyTypes currencyType, BillTypes billType) {
         try {
             validateTransactionParameters(amount, currencyType);
-            return new Payment(amount, currencyType, billTypes);
+            return Payment.builder()
+                    .amount(amount)
+                    .currencyType(currencyType)
+                    .billType(billType)
+                    .build();
         } catch (Exception e) {
-            throw new TransactionException("Transaction failed" + e);
+            throw new TransactionException("Transaction failed: " + e.getMessage());
         }
     }
 

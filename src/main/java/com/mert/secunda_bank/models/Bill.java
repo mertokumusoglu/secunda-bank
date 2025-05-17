@@ -26,73 +26,93 @@ public class Bill {
     private LocalDateTime dueDate;
     private String status;
 
-    public Bill() {
-        // default
+    // Protected constructor for JPA and Builder
+    protected Bill() {
     }
 
-    public Bill(Long billId, Account account,BillTypes billType, BigDecimal amount, LocalDateTime dueDate, CurrencyTypes currency, String status) {
-        this.billId = billId;
-        this.account = account;
-        this.billType = billType;
-        this.amount = amount;
-        this.dueDate = dueDate;
-        this.currency = currency;
-        this.status = status;
+    // Getters
+    public Long getBillId() { return billId; }
+    public Account getAccount() { return account; }
+    public BillTypes getBillType() { return billType; }
+    public BigDecimal getAmount() { return amount; }
+    public CurrencyTypes getCurrency() { return currency; }
+    public LocalDateTime getDueDate() { return dueDate; }
+    public String getStatus() { return status; }
+
+    // setter for status update
+    public void setStatus(String status) { 
+        this.status = status; 
     }
 
-    public Long getBillId() {
-        return billId;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public void setBillId(Long billId) {
-        this.billId = billId;
-    }
+    public static class Builder {
+        private Bill bill = new Bill();
 
-    public Account getAccount() {
-        return account;
-    }
+        public Builder account(Account account) {
+            bill.account = account;
+            return this;
+        }
 
-    public void setAccount(Account account) {
-        this.account = account;
-    }
+        public Builder billType(BillTypes billType) {
+            bill.billType = billType;
+            return this;
+        }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
+        public Builder amount(BigDecimal amount) {
+            bill.amount = amount;
+            return this;
+        }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
+        public Builder currency(CurrencyTypes currency) {
+            bill.currency = currency;
+            return this;
+        }
 
-    public CurrencyTypes getCurrency() {
-        return currency;
-    }
+        public Builder dueDate(LocalDateTime dueDate) {
+            bill.dueDate = dueDate;
+            return this;
+        }
 
-    public void setCurrency(CurrencyTypes currency) {
-        this.currency = currency;
-    }
+        public Builder status(String status) {
+            bill.status = status;
+            return this;
+        }
 
-    public BillTypes getBillType() {
-        return billType;
-    }
+        public Bill build() {
+            validateBillData();
+            return bill;
+        }
 
-    public void setBillType(BillTypes billType) {
-        this.billType = billType;
-    }
+        private void validateBillData() {
+            StringBuilder errors = new StringBuilder();
 
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
+            if (bill.account == null) {
+                errors.append("Account is required. ");
+            }
+            if (bill.billType == null) {
+                errors.append("Bill type is required. ");
+            }
+            if (bill.amount == null || bill.amount.compareTo(BigDecimal.ZERO) <= 0) {
+                errors.append("Amount must be positive. ");
+            }
+            if (bill.currency == null) {
+                errors.append("Currency is required. ");
+            }
+            if (bill.dueDate == null) {
+                errors.append("Due date is required. ");
+            }
+            
+            // Set default status if not provided
+            if (bill.status == null) {
+                bill.status = "PENDING";
+            }
 
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+            if (errors.length() > 0) {
+                throw new IllegalStateException("Invalid bill data: " + errors.toString());
+            }
+        }
     }
 }

@@ -77,7 +77,7 @@ public class TransactionService {
             throw new TransactionalException("Transaction failed", e);
         }
     }
-
+    @Transactional
     public void deposit(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber) {
         Account receiverAccount = accountService.getAccountByAccountNumber(receiverAccountNumber);
         if (hasValidateSufficientFunds(receiverAccount, amount)) {
@@ -95,6 +95,7 @@ public class TransactionService {
         }
     }
 
+    @Transactional
     public void payment(BigDecimal amount, CurrencyTypes currencyTypes, BillTypes billTypes, Long senderAccountNumber) {
         Account account = accountService.getAccountByAccountNumber(senderAccountNumber);
         Bill bill = account.getBills().stream().filter(b -> b.getBillType() == billTypes).findFirst().get();

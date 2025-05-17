@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
 @Entity
 @Table(name = "transactions")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -15,96 +14,97 @@ public abstract class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long transactionId;
+    protected Long transactionId;
 
-    private BigDecimal amount;
+    protected BigDecimal amount;
+    
     @Enumerated(EnumType.STRING)
-    private CurrencyTypes currencyTypes;
-    private TransactionTypes type;
-    private LocalDateTime timestamp;
-    private String status = "PENDING";
-    private String description;
-    private BigDecimal fee;
+    protected CurrencyTypes currencyTypes;
+    
+    protected TransactionTypes type;
+    protected LocalDateTime timestamp;
+    protected String status = "PENDING";
+    protected String description;
+    protected BigDecimal fee;
 
+    // Protected constructor for builder and subclasses
+    protected Transaction() {}
 
-    public Transaction() {
-        // default
+    // Getters
+    public Long getTransactionId() { return transactionId; }
+    public BigDecimal getAmount() { return amount; }
+    public CurrencyTypes getCurrency() { return currencyTypes; }
+    public TransactionTypes getType() { return type; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public String getStatus() { return status; }
+    public String getDescription() { return description; }
+    public BigDecimal getFee() { return fee; }
+
+    // Setter for status update
+    public void setStatus(String status) { this.status = status; }
+
+    // Abstract builder class for all transaction types
+    protected abstract static class TransactionBuilder<T extends Transaction, B extends TransactionBuilder<T, B>> {
+        protected T transaction;
+
+        protected abstract B self();
+
+        public B amount(BigDecimal amount) {
+            transaction.amount = amount;
+            return self();
+        }
+
+        public B currencyType(CurrencyTypes currencyType) {
+            transaction.currencyTypes = currencyType;
+            return self();
+        }
+
+        public B type(TransactionTypes type) {
+            transaction.type = type;
+            return self();
+        }
+
+        public B description(String description) {
+            transaction.description = description;
+            return self();
+        }
+
+        public B fee(BigDecimal fee) {
+            transaction.fee = fee;
+            return self();
+        }
+
+        protected void validateCommonFields() {
+            StringBuilder errors = new StringBuilder();
+
+            if (transaction.amount == null || transaction.amount.compareTo(BigDecimal.ZERO) <= 0) {
+                errors.append("Amount must be positive. ");
+            }
+            if (transaction.currencyTypes == null) {
+                errors.append("Currency type is required. ");
+            }
+            if (transaction.type == null) {
+                errors.append("Transaction type is required. ");
+            }
+
+            if (transaction.timestamp == null) {
+                transaction.timestamp = LocalDateTime.now();
+            }
+            if (transaction.fee == null) {
+                transaction.fee = BigDecimal.ZERO;
+            }
+            if (transaction.status == null) {
+                transaction.status = "PENDING";
+            }
+
+            if (errors.length() > 0) {
+                throw new IllegalStateException("Invalid transaction data: " + errors.toString());
+            }
+        }
+
+        public abstract T build();
     }
 
-    public Transaction(BigDecimal amount, LocalDateTime timestamp, CurrencyTypes currencyTypes, TransactionTypes type, String status, String description, BigDecimal fee) {
-
-        this.amount = amount;
-        this.timestamp = timestamp.now();
-        this.currencyTypes = currencyTypes;
-        this.type = type;
-        this.status = status;
-        this.description = description;
-        this.fee = fee;
-    }
-
-    public Long getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public CurrencyTypes getCurrency() {
-        return currencyTypes;
-    }
-
-    public void setCurrency(CurrencyTypes currencyTypes) {
-        this.currencyTypes = currencyTypes;
-    }
-
-    public TransactionTypes getType() {
-        return type;
-    }
-
-    public void setType(TransactionTypes type) {
-        this.type = type;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getFee() {
-        return fee;
-    }
-
-    public void setFee(BigDecimal fee) {
-        this.fee = fee;
-    }
     public abstract void execute();
 }
 

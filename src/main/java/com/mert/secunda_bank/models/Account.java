@@ -27,90 +27,102 @@ public class Account {
     @OneToMany(mappedBy = "account")
     private List<Transaction> transactions = new ArrayList<>();
 
-    public Account() {
-        // Default constructor
+   
+    private Account() {}
+
+    public Long getAccountId() { return accountNumber; }
+    public Long getIdentityNumber() { return identityNumber; }
+    public String getName() { return name; }
+    public String getPassword() { return password; }
+    public String getEmail() { return email; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public BigDecimal getBalance() { return balance; }
+    public BigDecimal getLoanDebt() { return loanDebt; }
+    public List<Bill> getBills() { return bills; }
+    public List<Transaction> getTransactions() { return transactions; }
+
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public void setPassword(String password) { this.password = password; }
+    public void setLoanDebt(BigDecimal loanDebt) { this.loanDebt = loanDebt; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    
+    public static class Builder {
+        private Account account = new Account();
+
+        public Builder identityNumber(Long identityNumber) {
+            account.identityNumber = identityNumber;
+            return this;
+        }
+
+        public Builder name(String name) {
+            account.name = name;
+            return this;
+        }
+
+        public Builder password(String password) {
+            account.password = password;
+            return this;
+        }
+
+        public Builder email(String email) {
+            account.email = email;
+            return this;
+        }
+
+        public Builder phoneNumber(String phoneNumber) {
+            account.phoneNumber = phoneNumber;
+            return this;
+        }
+
+        public Builder balance(BigDecimal balance) {
+            account.balance = balance;
+            return this;
+        }
+
+        public Builder loanDebt(BigDecimal loanDebt) {
+            account.loanDebt = loanDebt;
+            return this;
+        }
+
+        public Account build() {
+            validateAccountData();
+            return account;
+        }
+
+        private void validateAccountData() {
+            StringBuilder errors = new StringBuilder();
+
+            if (account.identityNumber == null) {
+                errors.append("Identity number is required. ");
+            }
+            if (account.name == null) {
+                errors.append("Name is required. ");
+            }
+            if (account.password == null) {
+                errors.append("Password is required. ");
+            }
+            if (account.email == null) {
+                errors.append("Email is required. ");
+            }
+            if (account.phoneNumber == null) {
+                errors.append("Phone number is required. ");
+            }
+            if (account.balance == null) {
+                account.balance = BigDecimal.valueOf(50.0);
+            }
+            if (account.loanDebt == null) {
+                account.loanDebt = BigDecimal.ZERO;
+            }
+            if (errors.length() > 0) {
+                throw new IllegalStateException("Invalid account data: " + errors.toString());
+            }
+        }
     }
 
-    public Account(Long identityNumber, String name,String password, String email, String phoneNumber, BigDecimal balance, BigDecimal loanDebt ) {
-        this.identityNumber = identityNumber;
-        this.name = name;
-        this.password = password;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.balance = balance;
-        this.loanDebt = loanDebt;
-    }
-
-    public Long getAccountId() {
-        return accountNumber;
-    }
-
-    public void setAccountId(Long accountId) {
-        this.accountNumber = accountId;
-    }
-
-    public Long getIdentityNumber() {
-        return identityNumber;
-    }
-
-    public void setIdentityNumber(Long identityNumber) {
-        this.identityNumber = identityNumber;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public BigDecimal getLoanDebt() {
-        return loanDebt;
-    }
-
-    public void setLoanDebt(BigDecimal loanDebt) {
-        this.loanDebt = loanDebt;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public List<Bill> getBills() {
-        return bills;
-    }
-
-    public List<Transaction> getTransactions() {
-        return transactions;
+    public static Builder builder() {
+        return new Builder();
     }
 }
 

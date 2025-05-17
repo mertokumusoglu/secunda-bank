@@ -47,8 +47,15 @@ public class AccountService {
         }
         return account;
     }
-
-    public Account createAccount(Account account) {
+    @Transactional
+    public Account createAccount(Long identityNumber, String name, String password, String email, String phoneNumber) {
+        Account account = Account.builder()
+                .identityNumber(identityNumber)
+                .name(name)
+                .password(password)
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .build();
         return accountRepository.save(account);
     }
 
@@ -78,16 +85,17 @@ public class AccountService {
         Account account = getAccountByAccountNumber(accountNumber);
         return account.getBills();
     }
-
+    @Transactional
     public Account updateAccount(Long accountNumber, Account updatedAccount) {
-        Account account = getAccountByAccountNumber(accountNumber);
-        // I don't add validation things for that. I know i must
-        account.setEmail(updatedAccount.getEmail());
-        account.setName(updatedAccount.getName());
-        account.setPhoneNumber(updatedAccount.getPhoneNumber());
-        return account;
+        Account existingAccount = getAccountByAccountNumber(accountNumber);
+        
+        existingAccount.setName(updatedAccount.getName());
+        existingAccount.setEmail(updatedAccount.getEmail());
+        existingAccount.setPhoneNumber(updatedAccount.getPhoneNumber());
+        
+        return existingAccount;
     }
-
+    @Transactional
     public void deleteAccount(Long AccountNumber) {
         Account account = getAccountByAccountNumber(AccountNumber);
         accountRepository.delete(account);
