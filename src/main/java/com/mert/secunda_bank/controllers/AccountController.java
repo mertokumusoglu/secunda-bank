@@ -1,9 +1,14 @@
 package com.mert.secunda_bank.controllers;
 
+import com.mert.secunda_bank.dto.AccountResponseDTO;
+import com.mert.secunda_bank.mappers.AccountMapper;
 import com.mert.secunda_bank.models.Account;
 import com.mert.secunda_bank.models.Bill;
 import com.mert.secunda_bank.models.Transaction;
 import com.mert.secunda_bank.services.AccountService;
+import com.mert.secunda_bank.dto.UpdateAccountRequestDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,18 +22,20 @@ public class AccountController {
         this.accountService = accountService;
     }
     @GetMapping("")
-    public List<Account> getAccounts() {
+    public List<AccountResponseDTO> getAccounts() {
         try {
-            return accountService.getAllAccounts();        
+            List<Account> accounts = accountService.getAllAccounts();
+            return AccountMapper.toAccountResponseDTOList(accounts);
         } catch (Exception e) {
             throw new RuntimeException("Accounts could not be fetched", e);
         }
     }
     // single account controllers
     @GetMapping("/{id}")
-    public Account getAccountByAccountNumber(@PathVariable Long id) {
+    public AccountResponseDTO getAccountByAccountNumber(@PathVariable Long id) {
         try {
-            return accountService.getAccountByAccountNumber(id);
+            Account account = accountService.getAccountByAccountNumber(id);
+            return AccountMapper.toAccountResponseDTO(account);
         } catch (Exception e) {
             throw new RuntimeException("Account with Account Number " + id + " could not be fetched", e);
         }
@@ -50,21 +57,14 @@ public class AccountController {
         }
     }
     @PutMapping("/{id}")
-    public Account updateAccount(@PathVariable Long id, @RequestBody Account updatedAccount) {
+    public ResponseEntity<AccountResponseDTO> updateAccount(@PathVariable Long id, @RequestBody UpdateAccountRequestDTO updateAccountRequestDTO) {
         try {
-            return accountService.updateAccount(id, updatedAccount);
+            Account updatedAccount = accountService.updateAccount(id, updateAccountRequestDTO);
+            AccountResponseDTO responseDTO = AccountMapper.toAccountResponseDTO(updatedAccount);
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
         } catch (Exception e) {
-            throw new RuntimeException("Account could not be updated", e);
+            throw new RuntimeException("Account could not be updated: " + e.getMessage(), e);
         }
-    }
-    @PutMapping("/{id}/reset-password") // identity number and oldPassword will comes from session
-    public Account resetPassword(@PathVariable Long identityNumber, String oldPassword,@RequestBody Account account) {
-        try {
-            accountService.resetPassword(identityNumber, oldPassword, account.getPassword());
-        } catch (Exception e) {
-            throw new RuntimeException("Password could not be reset", e);
-        }
-        return account;
     }
     @DeleteMapping("/{id}")
     public void deleteAccount(@PathVariable Long id) {

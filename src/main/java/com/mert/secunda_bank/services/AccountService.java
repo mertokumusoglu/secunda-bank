@@ -4,6 +4,7 @@ import com.mert.secunda_bank.models.Account;
 import com.mert.secunda_bank.models.Bill;
 import com.mert.secunda_bank.models.Transaction;
 import com.mert.secunda_bank.repositories.AccountRepository;
+import com.mert.secunda_bank.dto.UpdateAccountRequestDTO;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -48,14 +49,7 @@ public class AccountService {
         return account;
     }
     @Transactional
-    public Account createAccount(Long identityNumber, String name, String password, String email, String phoneNumber) {
-        Account account = Account.builder()
-                .identityNumber(identityNumber)
-                .name(name)
-                .password(password)
-                .email(email)
-                .phoneNumber(phoneNumber)
-                .build();
+    public Account createAccount(Account account) {
         return accountRepository.save(account);
     }
 
@@ -65,8 +59,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void resetPassword(Long identityNumber, String currentPassword, String newPassword) {
-        Account account = accountRepository.findByIdentityNumber(identityNumber)
+    public void resetPassword(Long accountNumber, String currentPassword, String newPassword) {
+        Account account = accountRepository.findById(accountNumber)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         // hashing is not implemented
         if (!account.getPassword().equals(currentPassword)) {
@@ -86,13 +80,18 @@ public class AccountService {
         return account.getBills();
     }
     @Transactional
-    public Account updateAccount(Long accountNumber, Account updatedAccount) {
+    public Account updateAccount(Long accountNumber, UpdateAccountRequestDTO dto) {
         Account existingAccount = getAccountByAccountNumber(accountNumber);
         
-        existingAccount.setName(updatedAccount.getName());
-        existingAccount.setEmail(updatedAccount.getEmail());
-        existingAccount.setPhoneNumber(updatedAccount.getPhoneNumber());
-        
+        if (dto.getName() != null) {
+            existingAccount.setName(dto.getName());
+        }
+        if (dto.getEmail() != null) {
+            existingAccount.setEmail(dto.getEmail());
+        }
+        if (dto.getPhoneNumber() != null) {
+            existingAccount.setPhoneNumber(dto.getPhoneNumber());
+        }
         return existingAccount;
     }
     @Transactional
