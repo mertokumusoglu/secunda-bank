@@ -20,6 +20,8 @@ public class AuthController {
         this.accountService = accountService;
     }
 
+    // login / logout will be added
+
     @PostMapping("/register")
     public ResponseEntity<AccountResponseDTO> createAccount(@RequestBody CreateAccountRequestDTO createAccountRequestDTO) {
         try {
