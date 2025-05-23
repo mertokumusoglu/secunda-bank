@@ -1,7 +1,6 @@
 package com.mert.secunda_bank.models.transactionTypes;
 
 import com.mert.secunda_bank.models.Transaction;
-import com.mert.secunda_bank.models.enums.CurrencyTypes;
 import com.mert.secunda_bank.models.enums.TransactionTypes;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

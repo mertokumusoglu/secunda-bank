@@ -1,7 +1,6 @@
 package com.mert.secunda_bank.models.transactionTypes;
 
 import com.mert.secunda_bank.models.Transaction;
-import com.mert.secunda_bank.models.enums.CurrencyTypes;
 import com.mert.secunda_bank.models.enums.TransactionTypes;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -68,8 +67,8 @@ public class Withdrawal extends Transaction {
                 errors.append("Account number is required. ");
             }
 
-            if (transaction.amount != null) {
-                errors.append("Withdrawal amount cannot be null");
+            if (transaction.amount == null || transaction.amount.compareTo(BigDecimal.ZERO) <= 0) {
+                errors.append("Withdrawal amount must be positive and not null. ");
             }
 
             if (errors.length() > 0) {

@@ -16,6 +16,10 @@ public abstract class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long transactionId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "referenced_account_id")
+    protected Account account;
+
     protected BigDecimal amount;
     
     @Enumerated(EnumType.STRING)
@@ -27,7 +31,6 @@ public abstract class Transaction {
     protected String description;
     protected BigDecimal fee;
 
-    // Protected constructor for builder and subclasses
     protected Transaction() {}
 
     // Getters
@@ -39,9 +42,11 @@ public abstract class Transaction {
     public String getStatus() { return status; }
     public String getDescription() { return description; }
     public BigDecimal getFee() { return fee; }
+    public Account getAccount() { return account; }
 
     // Setter for status update
     public void setStatus(String status) { this.status = status; }
+    public void setAccount(Account account) { this.account = account; }
 
     // Abstract builder class for all transaction types
     protected abstract static class TransactionBuilder<T extends Transaction, B extends TransactionBuilder<T, B>> {
@@ -74,6 +79,11 @@ public abstract class Transaction {
             return self();
         }
 
+        public B account(Account account) {
+            transaction.account = account;
+            return self();
+        }
+
         protected void validateCommonFields() {
             StringBuilder errors = new StringBuilder();
 
@@ -85,6 +95,9 @@ public abstract class Transaction {
             }
             if (transaction.type == null) {
                 errors.append("Transaction type is required. ");
+            }
+            if (transaction.account == null) {
+                errors.append("Account is required for transaction. ");
             }
 
             if (transaction.timestamp == null) {

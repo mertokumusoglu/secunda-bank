@@ -6,7 +6,6 @@ import com.mert.secunda_bank.models.enums.BillTypes;
 import com.mert.secunda_bank.models.enums.CurrencyTypes;
 import com.mert.secunda_bank.models.transactionTypes.Deposit;
 import com.mert.secunda_bank.models.transactionTypes.Payment;
-import com.mert.secunda_bank.models.transactionTypes.Transfer;
 import com.mert.secunda_bank.models.transactionTypes.Withdrawal;
 import com.mert.secunda_bank.repositories.AccountRepository;
 import com.mert.secunda_bank.repositories.TransactionRepository;
