@@ -37,3 +37,6 @@ out/
 .vscode/
 
 needs.txt
+
+### Configuration Files ###
+src/main/resources/application.properties
