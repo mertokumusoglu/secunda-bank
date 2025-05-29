@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.HashSet;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +19,7 @@ public class Account implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountNumber;
-    
+
     private Long identityNumber;
     private String name;
     private String password;
@@ -31,29 +34,65 @@ public class Account implements UserDetails {
     @OneToMany(mappedBy = "account")
     private List<Transaction> transactions = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "account_roles", joinColumns = @JoinColumn(name = "account_number"))
+    @Column(name = "role")
+    private Set<String> roles = new HashSet<>();
+
     // UserDetails fields
     private boolean accountNonExpired = true;
     private boolean accountNonLocked = true;
     private boolean credentialsNonExpired = true;
     private boolean enabled = true;
 
-   
-    private Account() {}
+    private Account() {
+    }
 
-    public Long getAccountId() { return accountNumber; }
-    public Long getIdentityNumber() { return identityNumber; }
-    public String getName() { return name; }
-    public String getPassword() { return password; }
-    public String getEmail() { return email; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public BigDecimal getBalance() { return balance; }
-    public BigDecimal getLoanDebt() { return loanDebt; }
-    public List<Bill> getBills() { return bills; }
-    public List<Transaction> getTransactions() { return transactions; }
+    public Long getAccountId() {
+        return accountNumber;
+    }
+
+    public Long getIdentityNumber() {
+        return identityNumber;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public BigDecimal getLoanDebt() {
+        return loanDebt;
+    }
+
+    public List<Bill> getBills() {
+        return bills;
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("USER_ROLE"));
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -81,13 +120,38 @@ public class Account implements UserDetails {
         return enabled;
     }
 
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-    public void setPassword(String password) { this.password = password; }
-    public void setLoanDebt(BigDecimal loanDebt) { this.loanDebt = loanDebt; }
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setLoanDebt(BigDecimal loanDebt) {
+        this.loanDebt = loanDebt;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
     public static class Builder {
         private Account account = new Account();
 
@@ -126,6 +190,11 @@ public class Account implements UserDetails {
             return this;
         }
 
+        public Builder roles(Set<String> roles) {
+            account.roles = roles;
+            return this;
+        }
+
         public Account build() {
             validateAccountData();
             return account;
@@ -155,6 +224,9 @@ public class Account implements UserDetails {
             if (account.loanDebt == null) {
                 account.loanDebt = BigDecimal.ZERO;
             }
+            if (account.getRoles().isEmpty()) {
+                account.setRoles(new HashSet<>(Set.of("ROLE_USER")));
+            }
             if (errors.length() > 0) {
                 throw new IllegalStateException("Invalid account data: " + errors.toString());
             }
@@ -165,4 +237,3 @@ public class Account implements UserDetails {
         return new Builder();
     }
 }
-

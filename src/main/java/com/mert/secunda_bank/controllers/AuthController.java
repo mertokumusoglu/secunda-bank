@@ -33,11 +33,6 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/home")
-    public String homepageFunc() {
-        return "Hello world";
-    }
-
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> loginAccount(@RequestBody LoginRequestDTO loginRequestDTO) {
         Authentication authentication = authenticationManager.authenticate(

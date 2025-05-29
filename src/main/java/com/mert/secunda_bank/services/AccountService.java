@@ -12,6 +12,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,11 +34,14 @@ public class AccountService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
     }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @PreAuthorize("hasRole('ADMIN') or #accountNumber == authentication.principal.accountId")
+    @Transactional
     public Account getAccountByAccountNumber(Long accountNumber) {
         Account account = entityManager.find(Account.class, accountNumber, LockModeType.PESSIMISTIC_WRITE);
         if (account == null) {
@@ -47,6 +51,7 @@ public class AccountService implements UserDetailsService {
     }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Transactional
     public Account getAccountByIdentityNumber(Long identityNumber) {
         Account account = entityManager.find(Account.class, identityNumber, LockModeType.PESSIMISTIC_WRITE);
         if (account == null) {
