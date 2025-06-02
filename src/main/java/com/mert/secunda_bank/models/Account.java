@@ -4,13 +4,16 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.HashSet;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.mert.secunda_bank.models.enums.CurrencyTypes;
 
 @Entity
 @Table(name = "accounts")
@@ -25,8 +28,14 @@ public class Account implements UserDetails {
     private String password;
     private String email;
     private String phoneNumber;
-    private BigDecimal balance = BigDecimal.valueOf(50.0);
     private BigDecimal loanDebt;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "account_balances", joinColumns = @JoinColumn(name = "account_number"))
+    @MapKeyColumn(name = "currency_code", length = 3)
+    @MapKeyEnumerated(EnumType.STRING)
+    @Column(name = "balance_amount")
+    private Map<CurrencyTypes, BigDecimal> balances = new HashMap<>();
 
     @OneToMany(mappedBy = "account")
     private List<Bill> bills = new ArrayList<>();
@@ -72,8 +81,12 @@ public class Account implements UserDetails {
         return phoneNumber;
     }
 
-    public BigDecimal getBalance() {
-        return balance;
+    public Map<CurrencyTypes, BigDecimal> getBalances() {
+        return balances;
+    }
+
+    public BigDecimal getBalance(CurrencyTypes currencyCode) {
+        return balances.getOrDefault(currencyCode, BigDecimal.ZERO);
     }
 
     public BigDecimal getLoanDebt() {
@@ -124,8 +137,24 @@ public class Account implements UserDetails {
         return roles;
     }
 
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
+    public void setBalances(Map<CurrencyTypes, BigDecimal> balances) {
+        this.balances = balances;
+    }
+
+    public void updateBalance(CurrencyTypes currencyCode, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount cannot be null or negative.");
+        }
+        this.balances.put(currencyCode, amount);
+    }
+
+    public void adjustBalance(CurrencyTypes currencyCode, BigDecimal amountChange) {
+        BigDecimal currentBalance = this.balances.getOrDefault(currencyCode, BigDecimal.ZERO);
+        BigDecimal newBalance = currentBalance.add(amountChange);
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalStateException("Insufficient funds in " + currencyCode.name() + " account.");
+        }
+        this.balances.put(currencyCode, newBalance);
     }
 
     public void setPassword(String password) {
@@ -180,8 +209,8 @@ public class Account implements UserDetails {
             return this;
         }
 
-        public Builder balance(BigDecimal balance) {
-            account.balance = balance;
+        public Builder balance(CurrencyTypes currencyCode, BigDecimal balanceAmount) {
+            account.balances.put(currencyCode, balanceAmount);
             return this;
         }
 
@@ -218,8 +247,8 @@ public class Account implements UserDetails {
             if (account.phoneNumber == null) {
                 errors.append("Phone number is required. ");
             }
-            if (account.balance == null) {
-                account.balance = BigDecimal.valueOf(50.0);
+            if (account.balances.isEmpty() || !account.balances.containsKey(CurrencyTypes.TRY)) {
+                account.balances.put(CurrencyTypes.TRY, BigDecimal.valueOf(50.0));
             }
             if (account.loanDebt == null) {
                 account.loanDebt = BigDecimal.ZERO;
