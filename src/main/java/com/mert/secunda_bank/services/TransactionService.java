@@ -37,13 +37,12 @@ public class TransactionService {
     @Transactional(timeout = 10)
     public void withdrawal(Long senderAccountNumber, BigDecimal amount, CurrencyTypes currencyType) {
         Account account = accountService.getAccountByAccountNumber(senderAccountNumber);
-        if (hasValidateSufficientFunds(account, amount)) {
+        if (hasValidateSufficientFunds(account, amount, currencyType)) {
             try {
                 Withdrawal withdrawal = TransactionFactory.createWithdrawalTransaction(senderAccountNumber, amount,
                         currencyType);
-                // money goes from bank to user's hand - bank's itself will be added
-                BigDecimal newBalance = account.getBalance().subtract(amount);
-                account.setBalance(newBalance);
+                BigDecimal newBalance = account.getBalance(currencyType).subtract(amount);
+                account.updateBalance(currencyType, newBalance);
                 accountRepository.save(account); // ask
                 transactionRepository.save(withdrawal);
                 withdrawal.execute();
@@ -67,8 +66,8 @@ public class TransactionService {
 
         try {
             validateTransfer(senderAccount, receiverAccount, amount);
-            if (hasValidateSufficientFunds(senderAccount, amount)) {
-                performTransfer(senderAccount, receiverAccount, amount);
+            if (hasValidateSufficientFunds(senderAccount, amount, currencyTypes)) {
+                performTransfer(senderAccount, receiverAccount, amount, currencyTypes);
             } else {
                 throw new InvalidTransactionException("Insufficient funds");
             }
@@ -79,37 +78,39 @@ public class TransactionService {
     @Transactional
     public void deposit(BigDecimal amount, CurrencyTypes currencyTypes, Long receiverAccountNumber) {
         Account receiverAccount = accountService.getAccountByAccountNumber(receiverAccountNumber);
-        if (hasValidateSufficientFunds(receiverAccount, amount)) {
             Deposit deposit = TransactionFactory.createDepositTransaction(amount, currencyTypes, receiverAccountNumber);
             transactionRepository.save(deposit);
             try {
                 // first - money goes to pool from the bank then to user
-                creditAccount(receiverAccount, amount);
+                creditAccount(receiverAccount, amount, currencyTypes);
                 transactionRepository.save(deposit);
                 deposit.execute();
             } catch (Exception e) {
                 deposit.setStatus("FAILED");
+                transactionRepository.save(deposit);
                 throw new TransactionalException("Transaction failed", e);
             }
-        }
     }
 
     @Transactional
     public void payment(BigDecimal amount, CurrencyTypes currencyTypes, BillTypes billTypes, Long senderAccountNumber) {
         Account account = accountService.getAccountByAccountNumber(senderAccountNumber);
-        Bill bill = account.getBills().stream().filter(b -> b.getBillType() == billTypes).findFirst().get();
-        if (hasValidateSufficientFunds(account, bill.getAmount())) {
-            Payment payment = TransactionFactory.createPaymentTransaction(bill.getAmount(), currencyTypes, billTypes);
-            transactionRepository.save(payment);
+        Bill bill = account.getBills().stream().filter(b -> b.getBillType() == billTypes).findFirst()
+                .orElseThrow(() -> new RuntimeException("Bill not found for type: " + billTypes));
 
+        if (hasValidateSufficientFunds(account, bill.getAmount(), currencyTypes)) {
+            Payment payment = TransactionFactory.createPaymentTransaction(bill.getAmount(), currencyTypes, billTypes);
+            // transactionRepository.save(payment);
             try {
-                debitAccount(account, bill.getAmount());
+                debitAccount(account, bill.getAmount(), currencyTypes);
                 bill.setStatus("PAID");
+                // billRepository.save(bill))
                 payment.setStatus("SUCCESS");
                 transactionRepository.save(payment);
                 payment.execute();
             } catch (Exception e) {
                 payment.setStatus("FAILED");
+                transactionRepository.save(payment);
                 throw new TransactionalException("Bill payment failed", e);
             }
         } else {
@@ -119,33 +120,33 @@ public class TransactionService {
     }
 
     // side methods
-    private boolean hasValidateSufficientFunds(Account account, BigDecimal amount) {
-        return account.getBalance().compareTo(amount) >= 0;
+    private boolean hasValidateSufficientFunds(Account account, BigDecimal amount, CurrencyTypes currencyType) {
+        return account.getBalance(currencyType).compareTo(amount) >= 0;
     }
 
-    private void debitAccount(Account account, BigDecimal amount) {
-        account.setBalance(account.getBalance().subtract(amount));
+    private void debitAccount(Account account, BigDecimal amount, CurrencyTypes currencyType) {
+        account.adjustBalance(currencyType, amount.negate());
         accountRepository.save(account);
     }
 
-    private void creditAccount(Account account, BigDecimal amount) {
-        account.setBalance(account.getBalance().add(amount));
+    private void creditAccount(Account account, BigDecimal amount, CurrencyTypes currencyType) {
+        account.adjustBalance(currencyType, amount);
         accountRepository.save(account);
     }
 
-    private void performTransfer(Account senderAccount, Account receiverAccount, BigDecimal amount) {
-        BigDecimal originalSenderBalance = senderAccount.getBalance();
-        BigDecimal originalReceiverBalance = receiverAccount.getBalance();
+    private void performTransfer(Account senderAccount, Account receiverAccount, BigDecimal amount, CurrencyTypes currencyType) {
+        BigDecimal originalSenderBalance = senderAccount.getBalance(currencyType);
+        BigDecimal originalReceiverBalance = receiverAccount.getBalance(currencyType);
 
         try {
-            debitAccount(senderAccount, amount);
-            creditAccount(receiverAccount, amount);
+            debitAccount(senderAccount, amount, currencyType);
+            creditAccount(receiverAccount, amount, currencyType);
         } catch (Exception e) {
-            senderAccount.setBalance(originalSenderBalance);
-            receiverAccount.setBalance(originalReceiverBalance);
+            senderAccount.updateBalance(currencyType, originalSenderBalance);
+            receiverAccount.updateBalance(currencyType, originalReceiverBalance);
             accountRepository.save(senderAccount);
             accountRepository.save(receiverAccount);
-            throw new TransactionalException("Transaction failed", e);
+            throw new TransactionalException("Transaction failed during performTransfer", e);
         }
     }
 

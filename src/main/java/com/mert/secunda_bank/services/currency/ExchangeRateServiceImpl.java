@@ -10,6 +10,7 @@ import java.util.Map;
 import org.slf4j.Logger;    
 import org.slf4j.LoggerFactory; 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,14 +37,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
     }
 
     @Override
+    @Cacheable("exchangeRates")
     public Map<CurrencyTypes, BigDecimal> getExchangeRates(CurrencyTypes baseCurrency) {
         String apiUrl = apiBaseUrl + apiKey + "/latest/" + baseCurrency;
         Map<CurrencyTypes, BigDecimal> ratesMap = new EnumMap<>(CurrencyTypes.class);
         try {
             logger.info("Fetching exchange rates from url: {}", apiBaseUrl);
             String jsonResponse = restTemplate.getForObject(apiUrl, String.class);
-            logger.debug("API Response: {}", jsonResponse); // !!!!!!!! SENSITIVE DATA
-
             if(jsonResponse == null) {
                 logger.error("Received null response from API: {}", apiBaseUrl);
                 return ratesMap;
@@ -85,10 +85,11 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
             return BigDecimal.ONE;
         }
         Map<CurrencyTypes, BigDecimal> ratesFromBase = getExchangeRates(fromCurrency);
-        if( ratesFromBase.containsKey(toCurrency)) {
+        if (ratesFromBase.containsKey(toCurrency)) {
             return ratesFromBase.get(toCurrency);
         } else {
-            logger.warn("Direct conversion rate from {} to {} not found using {} as base", fromCurrency, toCurrency, fromCurrency);
+            logger.warn("Direct conversion rate from {} to {} not found using {} as base", fromCurrency, toCurrency,
+                    fromCurrency);
             logger.error("Could not determine conversion rate from {} to {}.", fromCurrency, toCurrency);
             return null;
         }
